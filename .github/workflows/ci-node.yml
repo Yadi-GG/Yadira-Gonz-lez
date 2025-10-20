@@ -1,0 +1,57 @@
+name: Node setup + sequenced job
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  setup_node:
+    name: Install Node and deps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify tools
+        run: |
+          node -v
+          npm -v
+
+  second_job:
+    name: Run a sequenced task
+    needs: setup_node
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint (optional)
+        run: npm run lint --if-present
+
+      - name: Test (optional)
+        run: npm test --if-present
+
+      - name: Build (optional)
+        run: npm run build --if-present
+
+      - name: Finish
+        run: echo "Second job completed."
