@@ -1,0 +1,51 @@
+name: Node setup + sequenced job
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  setup_node:
+    name: Install Node
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify Node installed
+        run: |
+          node -v
+          npm -v
+
+  run_after_setup:
+    name: Second job after Node
+    needs: setup_node
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js (same version)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No dependencias. Sin package.json. Nada de npm ci.
+      - name: Run a tiny Node script
+        run: |
+          node -e "console.log('Hello from second job'); console.log('Node version:', process.version)"
+      
+      # Ejemplo opcional: publicar un artefacto mínimo
+      - name: Create report
+        run: |
+          echo "Run date: $(date)" > report.txt
+          echo "Node: $(node -v)" >> report.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-report
+          path: report.txt
